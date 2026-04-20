@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic'
 
 import { NextRequest, NextResponse } from 'next/server'
 import { Timestamp } from 'firebase-admin/firestore'
-import { db } from '@/lib/firebase-admin'
+import { getDb } from '@/lib/firebase-admin'
 
 // Cabeçalhos CORS — rota pública consumida pelo site Crenorte
 const corsHeaders = {
@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
       uf: String(uf).trim().toUpperCase(),
     }
 
-    const docRef = await db.collection('pre_cadastros').add(docData)
+    const docRef = await getDb().collection('pre_cadastros').add(docData)
 
     return NextResponse.json(
       { message: 'Cadastro realizado com sucesso.', id: docRef.id },

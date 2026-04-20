@@ -19,7 +19,10 @@ function getFirebaseAdmin() {
   })
 }
 
-const app = getFirebaseAdmin()
+export function getDb() {
+  return admin.firestore(getFirebaseAdmin())
+}
 
-export const db = admin.firestore(app)
-export const auth = admin.auth(app)
+export function getAuth() {
+  return admin.auth(getFirebaseAdmin())
+}

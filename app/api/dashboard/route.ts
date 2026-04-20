@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic'
 
 import { NextRequest, NextResponse } from 'next/server'
 import { Timestamp } from 'firebase-admin/firestore'
-import { db, auth } from '@/lib/firebase-admin'
+import { getDb, getAuth } from '@/lib/firebase-admin'
 
 interface DayCount {
   data: string
@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    await auth.verifyIdToken(sessionToken)
+    await getAuth().verifyIdToken(sessionToken)
   } catch {
     return NextResponse.json({ error: 'Token inválido ou expirado.' }, { status: 401 })
   }
@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
 
   // --- Consulta Firestore ---
   try {
-    const snapshot = await db
+    const snapshot = await getDb()
       .collection('pre_cadastros')
       .where('createdAt', '>=', Timestamp.fromDate(startDate))
       .where('createdAt', '<=', Timestamp.fromDate(endDate))
