@@ -80,7 +80,7 @@ export default function DashboardPage() {
 
     // Título
     doc.setFontSize(16)
-    doc.setTextColor(30, 64, 175) // blue-700
+    doc.setTextColor(21, 128, 61) // green-700
     doc.text('Relatório de Cadastros — Crenorte', 14, 20)
 
     // Subtítulo com período
@@ -106,7 +106,7 @@ export default function DashboardPage() {
       startY: 42,
       head: [['Data', 'Quantidade']],
       body: tableBody,
-      headStyles: { fillColor: [30, 64, 175] },
+      headStyles: { fillColor: [21, 128, 61] },
       foot: [],
       styles: { fontSize: 10 },
       columnStyles: { 1: { halign: 'center' } },
@@ -138,7 +138,7 @@ export default function DashboardPage() {
       <header className="bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold text-blue-700">Crenorte</h1>
+            <h1 className="text-xl font-bold text-green-700">Crenorte</h1>
             <p className="text-xs text-gray-500">Dashboard de Cadastros</p>
           </div>
           <div className="flex items-center gap-3">
@@ -166,7 +166,7 @@ export default function DashboardPage() {
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
                 className="border border-gray-300 rounded-lg px-3 py-2 text-sm
-                           focus:outline-none focus:ring-2 focus:ring-blue-500"
+                           focus:outline-none focus:ring-2 focus:ring-green-500"
               />
             </div>
             <div>
@@ -176,13 +176,13 @@ export default function DashboardPage() {
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
                 className="border border-gray-300 rounded-lg px-3 py-2 text-sm
-                           focus:outline-none focus:ring-2 focus:ring-blue-500"
+                           focus:outline-none focus:ring-2 focus:ring-green-500"
               />
             </div>
             <button
               onClick={() => fetchData(startDate, endDate)}
               disabled={fetching}
-              className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white
+              className="bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white
                          font-semibold px-5 py-2 rounded-lg text-sm transition"
             >
               {fetching ? 'Buscando...' : 'Filtrar'}
@@ -196,9 +196,9 @@ export default function DashboardPage() {
         </div>
 
         {/* Card total */}
-        <div className="bg-blue-600 text-white rounded-2xl shadow-sm p-6 flex items-center justify-between">
+        <div className="bg-green-600 text-white rounded-2xl shadow-sm p-6 flex items-center justify-between">
           <div>
-            <p className="text-blue-100 text-sm">Total de cadastros no período</p>
+            <p className="text-green-100 text-sm">Total de cadastros no período</p>
             <p className="text-4xl font-bold mt-1">{total}</p>
           </div>
           <div className="text-5xl opacity-20 select-none">&#128101;</div>
@@ -245,7 +245,7 @@ export default function DashboardPage() {
               <tfoot className="bg-gray-50 border-t-2 border-gray-200">
                 <tr>
                   <td className="px-6 py-3 font-bold text-gray-700">Total</td>
-                  <td className="px-6 py-3 text-right font-bold text-blue-700">{total}</td>
+                  <td className="px-6 py-3 text-right font-bold text-green-700">{total}</td>
                 </tr>
               </tfoot>
             </table>

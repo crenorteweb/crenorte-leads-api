@@ -39,7 +39,7 @@ export default function LoginPage() {
         <div className="bg-white rounded-2xl shadow-md px-8 py-10">
           {/* Logo / Título */}
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-blue-700 tracking-tight">Crenorte</h1>
+            <h1 className="text-3xl font-bold text-green-700 tracking-tight">Crenorte</h1>
             <p className="text-gray-500 mt-1 text-sm">Painel Administrativo</p>
           </div>
 
@@ -59,7 +59,7 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm
-                           focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                           focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent
                            transition"
                 placeholder="seu@email.com"
               />
@@ -80,7 +80,7 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm
-                           focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                           focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent
                            transition"
                 placeholder="••••••••"
               />
@@ -95,9 +95,9 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400
+              className="w-full bg-green-600 hover:bg-green-700 disabled:bg-green-400
                          text-white font-semibold rounded-lg px-4 py-2.5 text-sm
-                         transition focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                         transition focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
             >
               {loading ? 'Entrando...' : 'Entrar'}
             </button>
