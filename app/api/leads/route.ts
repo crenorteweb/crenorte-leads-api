@@ -62,6 +62,20 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // --- Verificar CPF duplicado ---
+    const existing = await getDb()
+      .collection('pre_cadastros')
+      .where('cpf', '==', cpfDigits)
+      .limit(1)
+      .get()
+
+    if (!existing.empty) {
+      return NextResponse.json(
+        { error: 'CPF já possui cadastro.' },
+        { status: 409, headers: corsHeaders }
+      )
+    }
+
     // --- Montar documento ---
     const now = Timestamp.now()
 
