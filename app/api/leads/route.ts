@@ -87,12 +87,7 @@ export async function POST(request: NextRequest) {
     const docData = {
       agendamentoStatus: 'nao_agendado',
       aprovacao: {
-        em: null,
-        motivo: '',
-        observacao: '',
-        porNome: '',
-        porUid: '',
-        status: 'pendente',
+        status: 'nao_verificado',
       },
       atualizadoEm: now,
       bairro: String(bairro).trim(),
