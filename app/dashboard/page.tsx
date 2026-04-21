@@ -42,6 +42,12 @@ export default function DashboardPage() {
     setFetching(true)
     setErrorMsg('')
     try {
+      // Garante que o cookie sempre tem um token válido antes da requisição
+      if (user) {
+        const freshToken = await user.getIdToken()
+        document.cookie = `__session=${freshToken}; path=/; SameSite=Strict`
+      }
+
       const res = await fetch(
         `/api/dashboard?startDate=${start}&endDate=${end}`
       )
