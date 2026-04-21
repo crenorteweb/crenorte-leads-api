@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic'
 
 import { NextRequest, NextResponse } from 'next/server'
-import { Timestamp } from 'firebase-admin/firestore'
+import { Timestamp, FieldValue } from 'firebase-admin/firestore'
 import { getDb } from '@/lib/firebase-admin'
 
 // Cabeçalhos CORS — rota pública consumida pelo site Crenorte
@@ -70,9 +70,14 @@ export async function POST(request: NextRequest) {
       .get()
 
     if (!existing.empty) {
+      const docRef = existing.docs[0].ref
+      await docRef.update({
+        atualizadoEm: Timestamp.now(),
+        tentativasContato: FieldValue.arrayUnion(Timestamp.now()),
+      })
       return NextResponse.json(
-        { error: 'CPF já possui cadastro.' },
-        { status: 409, headers: corsHeaders }
+        { message: 'Nova tentativa de contato registrada.', id: docRef.id },
+        { status: 200, headers: corsHeaders }
       )
     }
 
@@ -97,7 +102,7 @@ export async function POST(request: NextRequest) {
       cpf: cpfDigits,
       createdAt: now,
       createdByNome: 'Site Crenorte',
-      createdByUid: 'site_portal',
+      createdByUid: 'cctRWCsi3jSnqYVUK3mjbrVaP372',
       desistencia: {
         status: 'nao_desistiu',
       },
