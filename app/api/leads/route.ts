@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
       cidade: String(municipio).trim(),
       cpf: cpfDigits,
       createdAt: now,
-      createdByNome: 'Site Crenorte',
+      createdByNome: 'Crenorte Admin',
       createdByUid: 'cctRWCsi3jSnqYVUK3mjbrVaP372',
       desistencia: {
         status: 'nao_desistiu',
