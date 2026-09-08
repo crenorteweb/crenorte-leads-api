@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
 
-    const { nomeCompleto, cpf, telefone, municipio, uf, bairro } = body
+    const { nomeCompleto, cpf, telefone, municipio, uf, bairro, endereco } = body
 
     // --- Validações ---
     const missing = [
@@ -30,6 +30,7 @@ export async function POST(request: NextRequest) {
       !municipio && 'municipio',
       !uf && 'uf',
       !bairro && 'bairro',
+      !endereco && 'endereco',
     ].filter(Boolean)
 
     if (missing.length > 0) {
@@ -91,6 +92,7 @@ export async function POST(request: NextRequest) {
       },
       atualizadoEm: now,
       bairro: String(bairro).trim(),
+      endereco: String(endereco).trim(),
       caixaAtual: 'triagem',
       caixaUid: '',
       cidade: String(municipio).trim(),
