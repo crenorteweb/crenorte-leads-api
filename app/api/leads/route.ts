@@ -131,6 +131,17 @@ function lerAnalise(
   return { ok: true, valor }
 }
 
+// Campos de análise comparados para decidir se houve mudança (em/porNome/porUid não contam)
+const ANALISE_CAMPOS_COMPARADOS = ['status', 'motivo', 'motivoTipo', 'observacao'] as const
+
+function analiseMudou(anterior: unknown, nova: Analise): boolean {
+  const a = (anterior && typeof anterior === 'object' ? anterior : {}) as Record<string, unknown>
+  return ANALISE_CAMPOS_COMPARADOS.some(k => (a[k] ?? '') !== (nova[k] ?? ''))
+}
+
+// Campos opcionais: se vierem vazios num reenvio, não apagam o valor já cadastrado
+const CAMPOS_OPCIONAIS = ['email', 'ocupacaoDescricao']
+
 const EMAIL_MAX = 254
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -308,7 +319,37 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // --- Verificar CPF duplicado ---
+    const now = Timestamp.now()
+
+    // Registro do consentimento LGPD desta tentativa
+    const autorizacaoRegistro = {
+      aceita: true,
+      aceitaEm: now,
+      versao: AUTORIZACAO_VERSAO,
+      texto: AUTORIZACAO_TEXTO,
+      ip: request.headers.get('x-forwarded-for')?.split(',')[0].trim() ?? '',
+      userAgent: request.headers.get('user-agent') ?? '',
+    }
+
+    // Dados informados pelo cliente (usados no cadastro novo e na comparação com o existente)
+    const dadosCliente: Record<string, string> = {
+      nomeCompleto: String(nomeCompleto).trim(),
+      telefone: telefoneDigits,
+      email: emailLimpo,
+      cidade: String(municipio).trim(),
+      uf: String(uf).trim().toUpperCase(),
+      bairro: String(bairro).trim(),
+      endereco: String(endereco).trim(),
+      cadunico: cadunicoNormalizado,
+      ocupacao: ocupacaoNormalizada,
+      ocupacaoDescricao: descricao,
+      tempoOcupacao: tempoOcupacaoNormalizado,
+      objetivoCredito: objetivoCreditoNormalizado,
+      valorSolicitado: valorSolicitadoNormalizado,
+      turnoVisita: turnoVisitaNormalizado,
+    }
+
+    // --- CPF já cadastrado: atualiza só o que mudou ---
     const existing = await getDb()
       .collection('pre_cadastros')
       .where('cpf', '==', cpfDigits)
@@ -316,38 +357,70 @@ export async function POST(request: NextRequest) {
       .get()
 
     if (!existing.empty) {
-      const docRef = existing.docs[0].ref
-      await docRef.update({
-        atualizadoEm: Timestamp.now(),
-        tentativasContato: FieldValue.arrayUnion(Timestamp.now()),
-      })
+      const snap = existing.docs[0]
+      const atual = snap.data()
+      const alteracoes: Record<string, { de: unknown; para: unknown }> = {}
+      const update: Record<string, unknown> = {}
+
+      for (const [campo, novo] of Object.entries(dadosCliente)) {
+        if (novo === '' && CAMPOS_OPCIONAIS.includes(campo)) continue
+        const anterior = atual[campo] ?? null
+        if (anterior !== novo) {
+          alteracoes[campo] = { de: anterior, para: novo }
+          update[campo] = novo
+        }
+      }
+
+      // Análises só são comparadas quando vierem no envio
+      const analises: [string, Analise | null][] = [
+        ['aprovacao', aprovacaoLida.valor],
+        ['elegivel', elegivelLido.valor],
+      ]
+      for (const [campo, nova] of analises) {
+        if (!nova) continue
+        if (analiseMudou(atual[campo], nova)) {
+          alteracoes[campo] = { de: atual[campo] ?? null, para: nova }
+          update[campo] = nova
+        }
+      }
+
+      const camposAtualizados = Object.keys(alteracoes)
+
+      update.atualizadoEm = now
+      update.tentativasContato = FieldValue.arrayUnion(now)
+      // Nova tentativa = novo consentimento; o anterior fica guardado
+      update.autorizacaoConsulta = autorizacaoRegistro
+      if (atual.autorizacaoConsulta) {
+        update.autorizacoesAnteriores = FieldValue.arrayUnion(atual.autorizacaoConsulta)
+      }
+      if (camposAtualizados.length > 0) {
+        update.historicoAlteracoes = FieldValue.arrayUnion({ em: now, origem: 'Site / portal', alteracoes })
+      }
+
+      await snap.ref.update(update)
+
       return NextResponse.json(
-        { message: 'Nova tentativa de contato registrada.', id: docRef.id },
+        {
+          message:
+            camposAtualizados.length > 0
+              ? 'Cadastro existente atualizado.'
+              : 'Nova tentativa de contato registrada. Nenhum dado foi alterado.',
+          id: snap.id,
+          camposAtualizados,
+        },
         { status: 200, headers: corsHeaders }
       )
     }
 
     // --- Montar documento ---
-    const now = Timestamp.now()
-
     const docData = {
+      ...dadosCliente,
       agendamentoStatus: 'nao_agendado',
       aprovacao: aprovacaoLida.valor ?? { status: 'nao_verificado' },
       atualizadoEm: now,
-      autorizacaoConsulta: {
-        aceita: true,
-        aceitaEm: now,
-        versao: AUTORIZACAO_VERSAO,
-        texto: AUTORIZACAO_TEXTO,
-        ip: request.headers.get('x-forwarded-for')?.split(',')[0].trim() ?? '',
-        userAgent: request.headers.get('user-agent') ?? '',
-      },
-      bairro: String(bairro).trim(),
-      cadunico: cadunicoNormalizado,
-      endereco: String(endereco).trim(),
+      autorizacaoConsulta: autorizacaoRegistro,
       caixaAtual: 'triagem',
       caixaUid: '',
-      cidade: String(municipio).trim(),
       cpf: cpfDigits,
       createdAt: now,
       createdByNome: 'Crenorte Admin',
@@ -356,23 +429,13 @@ export async function POST(request: NextRequest) {
         status: 'nao_desistiu',
       },
       elegivel: elegivelLido.valor ?? { status: 'nao_verificado' },
-      email: emailLimpo,
       encaminhamento: null,
       formalizacao: {
         status: 'nao_formalizado',
       },
       modalidade: '',
-      nomeCompleto: String(nomeCompleto).trim(),
-      ocupacao: ocupacaoNormalizada,
-      ocupacaoDescricao: descricao,
-      tempoOcupacao: tempoOcupacaoNormalizado,
-      objetivoCredito: objetivoCreditoNormalizado,
-      valorSolicitado: valorSolicitadoNormalizado,
-      turnoVisita: turnoVisitaNormalizado,
       origem: 'Site / portal',
       sexo: '',
-      telefone: telefoneDigits,
-      uf: String(uf).trim().toUpperCase(),
     }
 
     const docRef = await getDb().collection('pre_cadastros').add(docData)
